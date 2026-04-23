@@ -156,13 +156,6 @@ set('rsync', [
 ]);
 
 /**
- * List of schema update types.
- * `safe` includes all necessary operations, to add or change fields or tables.
- */
-set('typo3_updateschema_types', 'safe');
-
-
-/**
  * TYPO3 Commands
  * All run via {{bin/php}} {{release_path}}/{{bin/typo3}} <command>
  */

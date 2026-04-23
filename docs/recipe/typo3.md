@@ -210,17 +210,6 @@ return get('use_rsync') ? 'rsync' : 'deploy:update_code';
 ```
 
 
-### typo3_updateschema_types
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L162)
-
-List of schema update types.
-`safe` includes all necessary operations, to add or change fields or tables.
-
-```php title="Default value"
-'safe'
-```
-
-
 
 ## Tasks
 
@@ -233,7 +222,7 @@ List of schema update types.
 
 
 ### typo3\:cache\:flush {#typo3-cache-flush}
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L171)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L164)
 
 TYPO3 - Clear all caches.
 
@@ -242,7 +231,7 @@ All run via [bin/php](/docs/recipe/common.md#bin/php) [release_path](/docs/recip
 
 
 ### typo3\:cache\:warmup {#typo3-cache-warmup}
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L176)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L169)
 
 TYPO3 - Cache warmup for system caches.
 
@@ -250,7 +239,7 @@ TYPO3 - Cache warmup for system caches.
 
 
 ### typo3\:language\:update {#typo3-language-update}
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L181)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L174)
 
 TYPO3 - Update the language files of all activated extensions.
 
@@ -258,7 +247,7 @@ TYPO3 - Update the language files of all activated extensions.
 
 
 ### typo3\:extension\:setup {#typo3-extension-setup}
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L186)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L179)
 
 TYPO3 - Set up all extensions.
 
@@ -266,7 +255,7 @@ TYPO3 - Set up all extensions.
 
 
 ### typo3\:install\:fixfolderstructure {#typo3-install-fixfolderstructure}
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L191)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L184)
 
 TYPO3 - Fix folder structure.
 
@@ -274,7 +263,7 @@ TYPO3 - Fix folder structure.
 
 
 ### deploy {#deploy}
-[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L212)
+[Source](https://github.com/deployphp/deployer/blob/master/recipe/typo3.php#L205)
 
 Deploys a TYPO3 project.
 
