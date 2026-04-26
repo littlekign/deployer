@@ -254,13 +254,16 @@ function deployer_root(): string
  */
 function rsync_rsh(array $args): string
 {
-    $rsh = 'ssh ';
+    $parts = ['ssh'];
     foreach ($args as $option) {
+        if (str_contains($option, "\0")) {
+            throw new \InvalidArgumentException('rsync_rsh: NUL byte not allowed in ssh option');
+        }
         if (preg_match('/^[a-zA-Z0-9_\-=]+$/', $option)) {
-            $rsh .= ' ' . $option;
+            $parts[] = $option;
         } else {
-            $rsh .= '"' . addslashes($option) . '" ';
+            $parts[] = "'" . str_replace("'", "''", $option) . "'";
         }
     }
-    return $rsh;
+    return implode(' ', $parts);
 }
