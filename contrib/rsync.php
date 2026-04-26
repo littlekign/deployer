@@ -115,6 +115,7 @@ namespace Deployer;
 
 use Deployer\Host\Localhost;
 use Deployer\Task\Context;
+use function Deployer\Support\rsync_rsh;
 
 set('rsync', [
     'exclude' => [
@@ -245,6 +246,6 @@ task('rsync', function () {
         return;
     }
 
-    $sshArguments = $host->connectionOptionsString();
-    runLocally("rsync {$rsyncFlags} -e 'ssh $sshArguments' {{rsync_options}}{{rsync_includes}}{{rsync_excludes}}{{rsync_filter}} '$src/' '{$host->connectionString()}:$dst/'", timeout: $config['timeout']);
+    $rsh = quote(rsync_rsh($host->connectionOptions()));
+    runLocally("rsync {$rsyncFlags} -e $rsh {{rsync_options}}{{rsync_includes}}{{rsync_excludes}}{{rsync_filter}} '$src/' '{$host->connectionString()}:$dst/'", timeout: $config['timeout']);
 });

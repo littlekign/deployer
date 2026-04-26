@@ -266,15 +266,10 @@ class Host
         return $this->get('hostname');
     }
 
-    public function connectionOptionsString(): string
-    {
-        return implode(' ', array_map('Deployer\quote', $this->connectionOptionsArray()));
-    }
-
     /**
      * @return string[]
      */
-    public function connectionOptionsArray(): array
+    public function connectionOptions(): array
     {
         $options = [];
         if ($this->has('ssh_arguments')) {

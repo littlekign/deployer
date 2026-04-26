@@ -21,6 +21,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use function Deployer\quote;
 
 /**
  * @codeCoverageIgnore
@@ -93,13 +94,16 @@ class SshCommand extends Command
 
         Context::push(new Context($host));
         $host->setSshMultiplexing(false);
-        $options = $host->connectionOptionsString();
+        $connOptions = '';
+        foreach ($host->connectionOptions() as $option) {
+            $connOptions .= quote($option);
+        }
         $deployPath = $host->get('deploy_path', '~');
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            passthru("ssh -t $options {$host->connectionString()} \"cd $deployPath/current 2>/dev/null || cd $deployPath; $shell_path\"");
+            passthru("ssh -t $connOptions {$host->connectionString()} \"cd $deployPath/current 2>/dev/null || cd $deployPath; $shell_path\"");
         } else {
-            passthru("ssh -t $options {$host->connectionString()} 'cd $deployPath/current 2>/dev/null || cd $deployPath; $shell_path'");
+            passthru("ssh -t $connOptions {$host->connectionString()} 'cd $deployPath/current 2>/dev/null || cd $deployPath; $shell_path'");
         }
         return 0;
     }

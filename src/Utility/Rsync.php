@@ -19,6 +19,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 use function Deployer\quote;
+use function Deployer\Support\rsync_rsh;
 use function Deployer\writeln;
 
 class Rsync
@@ -58,9 +59,10 @@ class Rsync
             $options[] = '--stats';
         }
 
-        $connectionOptions = $host->connectionOptionsString();
-        if ($connectionOptions !== '') {
-            $options = array_merge($options, ['-e', "ssh $connectionOptions"]);
+        $connectionOptions = $host->connectionOptions();
+        if (!empty($connectionOptions)) {
+            $rsh = rsync_rsh($connectionOptions);
+            $options = array_merge($options, ['-e', $rsh]);
         }
         if ($host->has('become') && !empty($host->get('become'))) {
             $options = array_merge($options, ['--rsync-path', "sudo -H -u {$host->get('become')} rsync"]);
@@ -75,12 +77,12 @@ class Rsync
             },
         ));
 
-        $commandString = $command[0];
+        $printCommandForDebug = $command[0];
         for ($i = 1; $i < count($command); $i++) {
-            $commandString .= ' ' . quote($command[$i]);
+            $printCommandForDebug .= ' ' . quote($command[$i]);
         }
         if ($this->output->isVerbose()) {
-            $this->output->writeln("[$host] $commandString");
+            $this->output->writeln("[$host] $printCommandForDebug");
         }
 
         $progressBar = null;
@@ -138,7 +140,7 @@ class Rsync
         } catch (ProcessFailedException $exception) {
             throw new RunException(
                 $host,
-                $commandString,
+                $printCommandForDebug,
                 $process->getExitCode(),
                 $process->getOutput(),
                 $process->getErrorOutput(),

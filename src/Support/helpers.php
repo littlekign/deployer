@@ -233,3 +233,34 @@ function deployer_root(): string
         }
     }
 }
+
+/**
+ * Constructs an rsync-compatible remote shell command string using SSH and the provided options.
+ *
+ * @see https://github.com/RsyncProject/rsync/blob/4f6e4ea64ac3e2ac50f48103a22601f4a40ee8be/rsync.1.md?plain=1#L2152-L2162
+ *
+ *     Command-line arguments are permitted in COMMAND provided that COMMAND is
+ *     presented to rsync as a single argument.  You must use spaces (not tabs or
+ *     other whitespace) to separate the command and args from each other, and you
+ *     can use single- and/or double-quotes to preserve spaces in an argument (but
+ *     not backslashes).  Note that doubling a single-quote inside a single-quoted
+ *     string gives you a single-quote; likewise for double-quotes (though you
+ *     need to pay attention to which quotes your shell is parsing and which
+ *     quotes rsync is parsing).  Some examples:
+ *
+ *     -e 'ssh -p 2234'
+ *     -e 'ssh -o "ProxyCommand nohup ssh firewall nc -w1 %h %p"'
+ *
+ */
+function rsync_rsh(array $args): string
+{
+    $rsh = 'ssh ';
+    foreach ($args as $option) {
+        if (preg_match('/^[a-zA-Z0-9_\-=]+$/', $option)) {
+            $rsh .= ' ' . $option;
+        } else {
+            $rsh .= '"' . addslashes($option) . '" ';
+        }
+    }
+    return $rsh;
+}

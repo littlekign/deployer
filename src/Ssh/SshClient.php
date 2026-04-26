@@ -40,7 +40,7 @@ class SshClient
             $shellCommand = "sudo -H -u {$host->get('become')} " . $shellCommand;
         }
 
-        $ssh = array_merge(['ssh'], $host->connectionOptionsArray(), [$host->connectionString(), ": $shellId; $shellCommand"]);
+        $ssh = array_merge(['ssh'], $host->connectionOptions(), [$host->connectionString(), ": $shellId; $shellCommand"]);
 
         // -vvv for ssh command
         if ($this->output->isDebug()) {
