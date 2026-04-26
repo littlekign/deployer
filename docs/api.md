@@ -79,14 +79,14 @@ Returns array of hosts selected by user via CLI.
 import(string $file): void
 ```
 
-Import other php or yaml recipes.
+Import other PHP or MAML recipes.
 
 ```php
 import('recipe/common.php');
 ```
 
 ```php
-import(__DIR__ . '/config/hosts.yaml');
+import(__DIR__ . '/config/hosts.maml');
 ```
 
 

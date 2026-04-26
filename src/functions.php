@@ -145,14 +145,14 @@ function selectedHosts(): array
 }
 
 /**
- * Import other php or yaml recipes.
+ * Import other PHP or MAML recipes.
  *
  * ```php
  * import('recipe/common.php');
  * ```
  *
  * ```php
- * import(__DIR__ . '/config/hosts.yaml');
+ * import(__DIR__ . '/config/hosts.maml');
  * ```
  */
 function import(string $file): void
