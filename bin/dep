@@ -32,15 +32,8 @@ if (!empty($deployFile)) {
     $deployFile = realpath($deployFile);
 }
 $lookUp = function (string $name): ?string {
-    $dir = getcwd();
-    for ($i = 0; $i < 10; $i++) {
-        $path = "$dir/$name";
-        if (is_readable($path)) {
-            return $path;
-        }
-        $dir = dirname($dir);
-    }
-    return '';
+    $path = getcwd() . '/' . $name;
+    return is_readable($path) ? $path : null;
 };
 if (empty($deployFile)) {
     $deployFile = $lookUp('deploy.php');
