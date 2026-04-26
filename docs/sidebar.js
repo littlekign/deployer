@@ -8,7 +8,7 @@ module.exports = [
     items: ["hosts", "tasks", "selector"],
   },
   "ci-cd",
-  "yaml",
+  "maml",
   "cli",
   "api",
   {
