@@ -42,15 +42,15 @@ return which('yarn');
 ## Tasks
 
 ### yarn\:install {#yarn-install}
-[Source](https://github.com/deployphp/deployer/blob/master/contrib/yarn.php#L23)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/yarn.php#L22)
 
 Installs Yarn packages.
 
-In there is a {{previous_release}}, node_modules will be copied from it before installing deps with yarn.
+
 
 
 ### yarn\:build {#yarn-build}
-[Source](https://github.com/deployphp/deployer/blob/master/contrib/yarn.php#L33)
+[Source](https://github.com/deployphp/deployer/blob/master/contrib/yarn.php#L27)
 
 Runs Yarn build.
 
