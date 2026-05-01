@@ -7,11 +7,11 @@
 
 namespace Deployer;
 
-use joy\JoyTest;
 use PHPUnit\Framework\Attributes\Depends;
+use spec\SpecTest;
 use Symfony\Component\Console\Output\Output;
 
-class DeployTest extends JoyTest
+class DeployTest extends SpecTest
 {
     public const RECIPE = __DIR__ . '/recipe/deploy.php';
 

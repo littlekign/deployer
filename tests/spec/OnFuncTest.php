@@ -6,9 +6,9 @@
  * file that was distributed with this source code.
  */
 
-namespace joy;
+namespace spec;
 
-class OnFuncTest extends JoyTest
+class OnFuncTest extends SpecTest
 {
     protected function recipe(): string
     {

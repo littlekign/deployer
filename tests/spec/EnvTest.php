@@ -7,9 +7,9 @@
 
 namespace Deployer;
 
-use joy\JoyTest;
+use spec\SpecTest;
 
-class EnvTest extends JoyTest
+class EnvTest extends SpecTest
 {
     public const RECIPE = __DIR__ . '/recipe/env.php';
 

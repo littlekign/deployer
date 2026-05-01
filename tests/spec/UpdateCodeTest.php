@@ -7,10 +7,10 @@
 
 namespace Deployer;
 
-use joy\JoyTest;
+use spec\SpecTest;
 use Symfony\Component\Console\Output\Output;
 
-class UpdateCodeTest extends JoyTest
+class UpdateCodeTest extends SpecTest
 {
     public const RECIPE = __DIR__ . '/recipe/update_code.php';
 

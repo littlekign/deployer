@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace joy;
+namespace spec;
 
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ConfigCommandTest extends JoyTest
+class ConfigCommandTest extends SpecTest
 {
     protected function recipe(): string
     {

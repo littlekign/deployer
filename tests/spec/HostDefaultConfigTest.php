@@ -8,9 +8,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace joy;
+namespace spec;
 
-class HostDefaultConfigTest extends JoyTest
+class HostDefaultConfigTest extends SpecTest
 {
     protected function recipe(): string
     {

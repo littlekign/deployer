@@ -7,9 +7,9 @@
 
 namespace Deployer;
 
-use joy\JoyTest;
+use spec\SpecTest;
 
-class OnceTest extends JoyTest
+class OnceTest extends SpecTest
 {
     public const RECIPE = __DIR__ . '/recipe/once.php';
 

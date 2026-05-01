@@ -5,26 +5,23 @@
          stopOnError="false"
          stopOnFailure="false"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd">
-  <source>
-    <include>
-      <directory>src/</directory>
-      <directory>recipe/</directory>
-    </include>
-    <exclude>
-      <directory suffix=".php">vendor/</directory>
-      <directory>bin/</directory>
-    </exclude>
-  </source>
-  <testsuites>
-    <testsuite name="Src">
-      <directory>tests/src/</directory>
-    </testsuite>
-    <testsuite name="spec">
-      <directory>tests/spec/</directory>
-    </testsuite>
-    <testsuite name="Joy">
-      <directory>tests/joy/</directory>
-      <exclude>tests/joy/JoyTest.php</exclude>
-    </testsuite>
-  </testsuites>
+    <source>
+        <include>
+            <directory>src/</directory>
+            <directory>recipe/</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">vendor/</directory>
+            <directory>bin/</directory>
+        </exclude>
+    </source>
+    <testsuites>
+        <testsuite name="src">
+            <directory>tests/src/</directory>
+        </testsuite>
+        <testsuite name="spec">
+            <directory>tests/spec/</directory>
+            <exclude>tests/spec/SpecTest.php</exclude>
+        </testsuite>
+    </testsuites>
 </phpunit>

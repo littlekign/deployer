@@ -7,9 +7,9 @@
 
 namespace Deployer;
 
-use joy\JoyTest;
+use spec\SpecTest;
 
-class OncePerNodeTest extends JoyTest
+class OncePerNodeTest extends SpecTest
 {
     public const RECIPE = __DIR__ . '/recipe/once_per_node.php';
 
