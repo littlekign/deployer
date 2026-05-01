@@ -127,4 +127,24 @@ class QuoteTest extends TestCase
         self::assertEquals("\$'`rm -rf /`'", quote('`rm -rf /`'));
         self::assertEquals("\$'\$(cat /etc/passwd)'", quote('$(cat /etc/passwd)'));
     }
+
+    public function testIntPositive()
+    {
+        self::assertEquals('42', quote(42));
+    }
+
+    public function testIntZero()
+    {
+        self::assertEquals('0', quote(0));
+    }
+
+    public function testIntNegative()
+    {
+        self::assertEquals('-7', quote(-7));
+    }
+
+    public function testIntMax()
+    {
+        self::assertEquals((string) PHP_INT_MAX, quote(PHP_INT_MAX));
+    }
 }

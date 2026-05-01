@@ -992,8 +992,9 @@ function timestamp(): string
  * run('echo ' . quote("it's a test"));  // echo $'it\'s a test'
  * ```
  */
-function quote(string $arg): string
+function quote(string|int $arg): string
 {
+    $arg = (string) $arg;
     if ($arg === '') {
         return "\$''";
     }

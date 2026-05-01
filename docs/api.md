@@ -614,7 +614,7 @@ Returns current timestamp in UTC timezone in ISO8601 format.
 ## quote()
 
 ```php
-quote(string $arg): string
+quote(string|int $arg): string
 ```
 
 Quotes a string for safe use as a shell argument using ANSI-C $'...' syntax.
