@@ -60,7 +60,6 @@ class QuoteTest extends TestCase
             'carriage return' => ["line1\rline2", "\$'line1\\rline2'"],
             'form feed' => ["page\fbreak", "\$'page\\fbreak'"],
             'vertical tab' => ["vert\vtab", "\$'vert\\vtab'"],
-            'null byte' => ["null\0byte", "\$'null\\0byte'"],
             'semicolon' => ['cmd; rm -rf /', "\$'cmd; rm -rf /'"],
             'pipe' => ['a | b', "\$'a | b'"],
             'ampersand' => ['a & b', "\$'a & b'"],
@@ -85,9 +84,15 @@ class QuoteTest extends TestCase
 
     public function testAllSpecialCharsAtOnce()
     {
-        $input = "'\\\f\n\r\t\v\0";
-        $expected = "\$'\\'\\\\\\f\\n\\r\\t\\v\\0'";
+        $input = "'\\\f\n\r\t\v";
+        $expected = "\$'\\'\\\\\\f\\n\\r\\t\\v'";
         self::assertEquals($expected, quote($input));
+    }
+
+    public function testNullByteRejected()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        quote("null\0byte");
     }
 
     public function testUnicodeContent()

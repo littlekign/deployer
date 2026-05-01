@@ -998,6 +998,9 @@ function quote(string|int $arg): string
     if ($arg === '') {
         return "\$''";
     }
+    if (str_contains($arg, "\0")) {
+        throw new \InvalidArgumentException('quote(): null byte is not allowed in shell arguments');
+    }
     if (preg_match('/^[\w\/.\-+@:=,%]+$/', $arg)) {
         return $arg;
     }
@@ -1009,7 +1012,6 @@ function quote(string|int $arg): string
         "\r" => '\\r',
         "\t" => '\\t',
         "\v" => '\\v',
-        "\0" => '\\0',
     ]) . "'";
 }
 
