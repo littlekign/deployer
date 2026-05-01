@@ -256,6 +256,9 @@ function rsync_rsh(array $args): string
 {
     $parts = ['ssh'];
     foreach ($args as $option) {
+        if (is_integer($option)) {
+            $option = (string) $option;
+        }
         if (str_contains($option, "\0")) {
             throw new \InvalidArgumentException('rsync_rsh: NUL byte not allowed in ssh option');
         }

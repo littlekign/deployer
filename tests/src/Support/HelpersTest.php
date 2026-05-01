@@ -59,4 +59,11 @@ class HelpersTest extends TestCase
         $this->assertStringStartsWith('~', parse_home_dir('~path'));
         $this->assertStringEndsWith('~', parse_home_dir('path~'));
     }
+
+    public function testRsyncRsh()
+    {
+        $this->assertEquals("ssh -p 22", rsync_rsh(['-p', 22]));
+        $this->assertEquals("ssh 'argument with spaces'", rsync_rsh(['argument with spaces']));
+        $this->assertEquals("ssh 'argument with '' quote'", rsync_rsh(['argument with \' quote']));
+    }
 }
