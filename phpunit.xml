@@ -19,8 +19,8 @@
     <testsuite name="Src">
       <directory>tests/src/</directory>
     </testsuite>
-    <testsuite name="Legacy">
-      <directory>tests/legacy/</directory>
+    <testsuite name="spec">
+      <directory>tests/spec/</directory>
     </testsuite>
     <testsuite name="Joy">
       <directory>tests/joy/</directory>
