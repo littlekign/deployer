@@ -144,6 +144,102 @@ class LoggerTest extends TestCase
         $logger->startTask(new Task('deploy', function () {}));
     }
 
+    public function testEndTaskVeryVerbosePrintsDuration(): void
+    {
+        $output = $this->createMock(OutputInterface::class);
+        $output->method('isVeryVerbose')->willReturn(true);
+        $output->expects($this->once())
+            ->method('writeln')
+            ->with($this->logicalAnd(
+                $this->stringContains('done'),
+                $this->stringContains('deploy'),
+                $this->stringContains('ms'),
+            ));
+
+        $fileLog = $this->createStub(HandlerInterface::class);
+
+        $logger = new Logger($output, $fileLog);
+        $logger->endTask(new Task('deploy', function () {}));
+    }
+
+    public function testEndTaskNonVerboseSkipsOutput(): void
+    {
+        $output = $this->createMock(OutputInterface::class);
+        $output->method('isVeryVerbose')->willReturn(false);
+        $output->expects($this->never())->method('writeln');
+
+        $fileLog = $this->createStub(HandlerInterface::class);
+
+        $logger = new Logger($output, $fileLog);
+        $logger->endTask(new Task('deploy', function () {}));
+    }
+
+    public function testEndTaskGithubCIAlwaysPrintsDuration(): void
+    {
+        putenv('GITHUB_WORKFLOW=test');
+
+        $output = $this->createMock(OutputInterface::class);
+        $output->method('isVeryVerbose')->willReturn(false);
+        $writelnArgs = [];
+        $output->expects($this->exactly(2))
+            ->method('writeln')
+            ->willReturnCallback(function ($msg) use (&$writelnArgs) {
+                $writelnArgs[] = $msg;
+            });
+
+        $fileLog = $this->createStub(HandlerInterface::class);
+
+        $logger = new Logger($output, $fileLog);
+        $logger->endTask(new Task('deploy', function () {}));
+
+        $this->assertStringContainsString('done', $writelnArgs[0]);
+        $this->assertStringContainsString('deploy', $writelnArgs[0]);
+        $this->assertStringContainsString('ms', $writelnArgs[0]);
+        $this->assertEquals('::endgroup::', $writelnArgs[1]);
+    }
+
+    public function testEndTaskGitlabCIAlwaysPrintsDuration(): void
+    {
+        putenv('GITLAB_CI=true');
+
+        $output = $this->createMock(OutputInterface::class);
+        $output->method('isVeryVerbose')->willReturn(false);
+        $writelnArgs = [];
+        $output->expects($this->exactly(2))
+            ->method('writeln')
+            ->willReturnCallback(function ($msg) use (&$writelnArgs) {
+                $writelnArgs[] = $msg;
+            });
+
+        $fileLog = $this->createStub(HandlerInterface::class);
+
+        $logger = new Logger($output, $fileLog);
+        $logger->endTask(new Task('deploy', function () {}));
+
+        $this->assertStringContainsString('done', $writelnArgs[0]);
+        $this->assertStringContainsString('deploy', $writelnArgs[0]);
+        $this->assertStringContainsString('ms', $writelnArgs[0]);
+        $this->assertStringContainsString('section_end:', $writelnArgs[1]);
+    }
+
+    public function testEndTaskWritesDurationToFileLog(): void
+    {
+        $output = $this->createStub(OutputInterface::class);
+        $output->method('isVeryVerbose')->willReturn(false);
+
+        $fileLog = $this->createMock(HandlerInterface::class);
+        $fileLog->expects($this->once())
+            ->method('writeln')
+            ->with($this->logicalAnd(
+                $this->stringContains('done'),
+                $this->stringContains('deploy'),
+                $this->stringContains('ms'),
+            ));
+
+        $logger = new Logger($output, $fileLog);
+        $logger->endTask(new Task('deploy', function () {}));
+    }
+
     public function testEndOnHostWritesToFileLog(): void
     {
         $output = $this->createStub(OutputInterface::class);

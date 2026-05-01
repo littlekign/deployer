@@ -19,6 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function Deployer\Support\ci_name;
+use function Deployer\Support\human_duration;
 
 class Logger
 {
@@ -82,18 +83,17 @@ class Logger
         }
 
         $endTime = round(microtime(true) * 1000);
-        $millis = $endTime - $this->startTime;
-        $seconds = floor($millis / 1000);
-        $millis = $millis - $seconds * 1000;
-        $taskTime = ($seconds > 0 ? "{$seconds}s " : "") . "{$millis}ms";
+        $taskTime = human_duration((int) ($endTime - $this->startTime));
 
         $ci = ci_name();
         if ($ci === 'github') {
+            $this->output->writeln("<fg=yellow;options=bold>done</> {$task->getName()} $taskTime");
             $this->output->writeln("::endgroup::");
         } elseif ($ci === 'gitlab') {
+            $this->output->writeln("<fg=yellow;options=bold>done</> {$task->getName()} $taskTime");
             $sectionId = md5($task->getName());
-            $endTime = round($endTime / 1000);
-            $this->output->writeln("\e[0Ksection_end:{$endTime}:{$sectionId}\r\e[0K");
+            $endSec = (int) round($endTime / 1000);
+            $this->output->writeln("\e[0Ksection_end:{$endSec}:{$sectionId}\r\e[0K");
         } elseif ($this->output->isVeryVerbose()) {
             $this->output->writeln("<fg=yellow;options=bold>done</> {$task->getName()} $taskTime");
         }

@@ -210,6 +210,29 @@ function colorize_host(string $alias): string
     return "<$tag>$alias</>";
 }
 
+function human_duration(int $millis): string
+{
+    if ($millis < 0) {
+        $millis = 0;
+    }
+    if ($millis < 1000) {
+        return "{$millis}ms";
+    }
+    $seconds = intdiv($millis, 1000);
+    $ms = $millis - $seconds * 1000;
+    if ($seconds < 60) {
+        return "{$seconds}s {$ms}ms";
+    }
+    $minutes = intdiv($seconds, 60);
+    $seconds = $seconds - $minutes * 60;
+    if ($minutes < 60) {
+        return "{$minutes}m {$seconds}s";
+    }
+    $hours = intdiv($minutes, 60);
+    $minutes = $minutes - $hours * 60;
+    return "{$hours}h {$minutes}m";
+}
+
 function ci_name(): ?string
 {
     if (getenv('GITHUB_WORKFLOW')) {
