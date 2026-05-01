@@ -21,7 +21,6 @@
     </testsuite>
     <testsuite name="Legacy">
       <directory>tests/legacy/</directory>
-      <exclude>tests/legacy/AbstractTest.php</exclude>
     </testsuite>
     <testsuite name="Joy">
       <directory>tests/joy/</directory>
