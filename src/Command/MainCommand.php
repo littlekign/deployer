@@ -94,7 +94,7 @@ class MainCommand extends SelectCommand
         if (!empty($this->deployer->config['repository'])) {
             $hash = sha1($this->deployer->config['repository']);
         } else {
-            $hosts = $this->deployer->hosts->all();
+            $hosts = array_values($this->deployer->hosts->all());
             if (count($hosts) > 0) {
                 $hash = sha1($hosts[0]->getHostname());
             }
