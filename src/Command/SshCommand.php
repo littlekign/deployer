@@ -95,10 +95,9 @@ class SshCommand extends Command
 
         Context::push(new Context($host));
         $host->setSshMultiplexing(false);
-        $connOptions = '';
-        foreach ($host->connectionOptions() as $option) {
-            $connOptions .= quote($option);
-        }
+        $connOptions = implode(' ', array_map(function ($option) {
+            return quote($option);
+        }, $host->connectionOptions()));
         $deployPath = $host->get('deploy_path', '~');
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
