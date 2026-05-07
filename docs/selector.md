@@ -161,7 +161,7 @@ task('info', function () {
     }
   }
 }
-```
+``` 
 
 Don't confuse `env` (a config key) with `labels.env` (a label). They are independent:
 

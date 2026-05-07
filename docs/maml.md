@@ -1,15 +1,11 @@
 # MAML Recipes
 
-Deployer supports recipes written in [MAML](https://maml.dev), a minimal,
-human-readable, machine-parsable configuration format. MAML extends JSON with
-comments, multiline raw strings, optional commas, unquoted keys, and ordered
-objects, while remaining strict about types and structure. Files use the
-`.maml` extension.
+[MAML](https://maml.dev) is a JSON superset with comments, raw multiline strings, optional commas, unquoted keys,
+and ordered objects. Files use the `.maml` extension.
 
-The schema for a MAML recipe is declared in PHP at
-[`MamlRecipe::schema()`](https://github.com/deployphp/deployer/blob/master/src/Import/MamlRecipe.php)
-and validated on load. Validation errors point at the offending span with a
-source snippet.
+Recipes are validated on load against
+[`MamlRecipe::schema()`](https://github.com/deployphp/deployer/blob/master/src/Import/MamlRecipe.php).
+Validation errors point at the offending span with a source snippet.
 
 ## Quick example
 
@@ -46,33 +42,22 @@ source snippet.
 }
 ```
 
-Generate a starter recipe interactively with:
-
-```bash
-dep init
-```
-
-and choose `maml` when prompted for the recipe language.
+Generate a starter recipe with `dep init` and pick `maml` when prompted.
 
 ## MAML syntax in 60 seconds
 
 A MAML document is a single value, normally a top-level object `{ ... }`.
 
 - **Comments**: `#` to end of line.
-- **Strings**: double-quoted (`"..."`), with the usual escapes
-  (`\t`, `\n`, `\r`, `\"`, `\\`, `\u{XXXX}`).
-- **Raw strings**: triple-quoted (`"""..."""`), no escapes, newlines and
-  whitespace preserved verbatim. Useful for embedding scripts.
+- **Strings**: `"..."` with standard escapes (`\t`, `\n`, `\r`, `\"`, `\\`, `\u{XXXX}`).
+- **Raw strings**: `"""..."""`, no escapes, newlines preserved. Use for embedded scripts.
 - **Numbers**: integers (`5`, `-3`) and floats (`1.5`, `1e9`).
-- **Booleans / null**: `true`, `false`, `null` (lowercase only).
-- **Arrays**: `[ ... ]`, comma- *or* newline-separated.
-- **Objects**: `{ key: value }`, comma- or newline-separated. Keys may be
-  unquoted identifiers (letters, digits, `_`, `-`) or quoted strings. Hosts
-  with dots (`"example.com"`) and hook names (`"deploy:failed"`) must be
-  quoted.
+- **Booleans / null**: lowercase `true`, `false`, `null`.
+- **Arrays**: `[ ... ]`, comma- or newline-separated.
+- **Objects**: `{ key: value }`, comma- or newline-separated. Keys are unquoted identifiers (letters, digits, `_`,
+  `-`) or quoted strings. Quote keys with dots (`"example.com"`) and colons (`"deploy:failed"`).
 
-Trailing commas are allowed everywhere. Duplicate keys inside an object are
-not.
+Trailing commas allowed. Duplicate keys are not.
 
 ## Top-level sections
 
@@ -92,9 +77,8 @@ Any other top-level key is rejected with a schema error.
 
 ## `import`
 
-Pull in other recipes. PHP recipes run as plain `require`, MAML and YAML
-recipes are parsed and applied. This is how a MAML recipe gains access to
-custom PHP tasks, callbacks, and helpers it cannot express directly.
+Pull in other recipes. `.php` files are `require`d; `.maml` and `.yaml` files are parsed and applied. Use
+imports to bring custom PHP tasks, callbacks, or helpers into a MAML recipe.
 
 ```maml
 {
@@ -112,11 +96,12 @@ custom PHP tasks, callbacks, and helpers it cannot express directly.
 }
 ```
 
+Built-in `recipe/*` and `contrib/*` paths resolve via PHP's include path — no need for `__DIR__` or absolute
+paths. See [import()](api.md#import).
+
 ## `config`
 
-A flat object. Each key is forwarded to `set($key, $value)`. Values may be
-strings, numbers, booleans, arrays, or nested objects, anything MAML can
-express.
+Each key calls `set($key, $value)`. Values can be any MAML type — string, number, bool, array, or nested object.
 
 ```maml
 {
@@ -129,15 +114,13 @@ express.
 }
 ```
 
-`config` does not accept PHP closures. To set values that need runtime
-evaluation, import a `.php` recipe and call `set()` from there.
+`config` does not accept PHP closures. For runtime-evaluated values, import a `.php` recipe and `set()` from
+there.
 
 ## `hosts`
 
-Each entry creates a host. Keys with dots (`example.com`) must be quoted.
-Inside, every key/value is forwarded to `Host::set()`, so all standard host
-options are available (`remote_user`, `deploy_path`, `port`, `identity_file`,
-`labels`, `ssh_arguments`, etc.).
+Each entry calls `host()`. Quote keys with dots. Every nested key/value is forwarded to `Host::set()`, so all
+standard host options work: `remote_user`, `deploy_path`, `port`, `identity_file`, `labels`, `ssh_arguments`, etc.
 
 ```maml
 {
@@ -207,10 +190,10 @@ Set `local: true` to register the entry as a localhost via `localhost()`:
 
 ## `tasks`
 
-A task entry is one of:
+A task entry is either:
 
-1. **Group task**: an array of strings. Runs the listed tasks in order.
-2. **Step task**: an array of step objects. Each step is a single action.
+1. **Group task** — array of strings. Runs the listed tasks in order.
+2. **Step task** — array of step objects. Each step is a single action or one task-config key.
 
 ### Group tasks
 
@@ -228,11 +211,9 @@ A task entry is one of:
 
 ### Step tasks
 
-Each step is an object with exactly one action key (`cd`, `run`,
-`runLocally`, `upload`, `download`) or one or more task-config keys (`desc`,
-`once`, `hidden`, `limit`, `select`). Steps are executed in declaration
-order. Task-config steps modify the task itself and do not interrupt the
-chain of actions.
+Each step is an object with **exactly one** action key (`cd`, `run`, `runLocally`, `upload`, `download`) or one
+task-config key (`desc`, `once`, `hidden`, `limit`, `select`). Steps run in declaration order. Config-only steps
+adjust task metadata and do not break the action chain.
 
 ```maml
 {
@@ -250,9 +231,8 @@ chain of actions.
 
 ### Task description from comments
 
-Leading `#` comments directly above a task key become the task's description
-(joined with newlines). The `desc` step takes precedence if both are
-present.
+`#` comments directly above a task key become its description (joined with newlines). A `desc` step takes
+precedence if both are present.
 
 ```maml
 {
@@ -268,7 +248,7 @@ present.
 
 ### Task config keys
 
-Set these inside step objects to control task metadata:
+Use these step keys to control task metadata. They mirror the chained methods in [Tasks](tasks.md).
 
 | Key | Type | Effect |
 |---|---|---|
@@ -294,9 +274,11 @@ Set these inside step objects to control task metadata:
 
 ## Step actions
 
+Each action mirrors the PHP function it is named after.
+
 ### `cd`
 
-Change the working directory for subsequent `run` steps in the same task.
+Change the working directory for subsequent `run` steps in the same task. See [cd()](api.md#cd).
 
 ```maml
 { cd: "{{release_path}}" }
@@ -304,19 +286,14 @@ Change the working directory for subsequent `run` steps in the same task.
 
 ### `run`
 
-Execute a command on the remote host. Equivalent to
-[`run()`](api.md#run). All optional keys mirror the PHP function:
+Run a command on the remote host. See [run()](api.md#run).
 
 ```maml
 {
   run: "php artisan migrate --force"
   cwd: "{{release_path}}"
-  env: {
-    APP_ENV: "production"
-  }
-  secrets: {
-    DB_PASSWORD: "s3cret"
-  }
+  env:     { APP_ENV: "production" }
+  secrets: { DB_PASSWORD: "s3cret" }
   timeout: 600
   idleTimeout: 120
   nothrow: false
@@ -324,18 +301,18 @@ Execute a command on the remote host. Equivalent to
 }
 ```
 
-| Option | Type | Default |
+| Key | Type | Default |
 |---|---|---|
-| `cwd` | string | host's `cwd`/`deploy_path` |
-| `cd` | string | (alias of `cwd`) |
-| `env` | map<string, string> | none |
-| `secrets` | map<string, string> | none |
-| `timeout` | number (seconds) | 300 |
-| `idleTimeout` | number (seconds) | none |
+| `cwd` | string | `{{working_path}}` |
+| `cd` | string | alias of `cwd` |
+| `env` | object | none |
+| `secrets` | object | none |
+| `timeout` | seconds | 300 |
+| `idleTimeout` | seconds | none |
 | `nothrow` | bool | `false` |
 | `forceOutput` | bool | `false` |
 
-Use a raw string for multiline commands:
+Multiline commands work nicely with raw strings:
 
 ```maml
 {
@@ -350,8 +327,8 @@ Use a raw string for multiline commands:
 
 ### `runLocally`
 
-Run a command on the local machine. Mirrors
-[`runLocally()`](api.md#runlocally).
+Run a command on the local machine. See [runLocally()](api.md#runlocally). Same options as `run` plus `shell`,
+minus `cd` (use `cwd`).
 
 ```maml
 {
@@ -362,13 +339,9 @@ Run a command on the local machine. Mirrors
 }
 ```
 
-Supports the same options as `run` plus `shell`, except `cd` (use `cwd`).
-
 ### `upload`
 
-Transfer files to the remote host. Mirrors
-[`upload()`](api.md#upload). `src` may be a single path or an array of
-paths.
+Send files to the host. See [upload()](api.md#upload). `src` may be a string or array.
 
 ```maml
 {
@@ -377,9 +350,7 @@ paths.
     dest: "{{release_path}}/public/"
   }
 }
-```
 
-```maml
 {
   upload: {
     src: ["dist/app.js", "dist/app.css"]
@@ -390,8 +361,7 @@ paths.
 
 ### `download`
 
-Transfer files from the remote host to the local machine. Mirrors
-[`download()`](api.md#download).
+Pull files from the host. See [download()](api.md#download).
 
 ```maml
 {
@@ -404,8 +374,7 @@ Transfer files from the remote host to the local machine. Mirrors
 
 ## `before`, `after`, `fail`
 
-Hooks attach tasks to other tasks. The value may be a single task name or an
-array of task names. Quote names that contain `:`.
+Attach hooks to tasks. The value is a task name or an array of names. Quote names with `:`.
 
 ```maml
 {
@@ -424,22 +393,21 @@ array of task names. Quote names that contain `:`.
 }
 ```
 
-For arrays, hooks attach in declaration order.
+Arrays attach in declaration order.
 
 ## Mixing MAML, PHP, and YAML
 
-MAML covers the declarative parts of a recipe: config, hosts, tasks built
-from standard steps, hooks. Anything that needs runtime PHP (closures, the
-`set('var', fn () => ...)` pattern, custom step types, conditional logic)
-belongs in a `.php` recipe imported from MAML, or vice-versa.
+MAML covers declarative parts: config, hosts, step tasks, hooks. Anything that needs runtime PHP — closures,
+`set('var', fn () => ...)`, custom step types, conditional logic — belongs in a `.php` recipe and gets imported
+both ways.
 
-From a PHP recipe, import MAML using [`import()`](api.md#import):
+From PHP, import a MAML recipe:
 
 ```php
 import('deploy.maml');
 ```
 
-From a MAML recipe, list the PHP file under `import`:
+From MAML, list the PHP file under `import`:
 
 ```maml
 {
@@ -447,26 +415,17 @@ From a MAML recipe, list the PHP file under `import`:
 }
 ```
 
-The same applies to YAML, see [YAML](yaml.md).
+YAML works the same — see [YAML](yaml.md).
 
 ## Validation errors
 
-When a recipe does not match the schema, Deployer raises a
-`SchemaException` with the offending span and a snippet of source. Common
-causes:
+A recipe that violates the schema raises a `SchemaException` pointing at the offending span. Common causes:
 
-- Unknown top-level key (anything outside the table above).
-- A step object with multiple action keys (each step is one action).
-- Wrong types, e.g. `config: "string"` instead of an object, or `tasks: [...]`
-  instead of an object.
-- Hook target not declared as a string or array of strings.
+- Unknown top-level key (only the keys in the table above are valid).
+- A step object with more than one action key.
+- Wrong type — e.g. `config: "string"` instead of an object, or `tasks: [...]` instead of an object.
+- Hook target that is not a string or array of strings.
 
-Fix the structure, re-run, and the error trace will pinpoint the line.
+## Tooling
 
-## Output and tooling
-
-- `dep init` generates a starter `deploy.maml`.
-- `dep config` prints config in MAML by default; use `--format=json` or
-  `--format=yaml` for other formats.
-- Editor support for MAML is available for VS Code, IntelliJ, Vim, and
-  CodeMirror, see [maml.dev](https://maml.dev).
+- Editor support for VS Code, IntelliJ, Vim, and CodeMirror is listed at [maml.dev](https://maml.dev).

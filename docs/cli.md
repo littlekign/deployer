@@ -37,11 +37,61 @@ dep deploy -o ssh_multiplexing=true -o branch=master
 
 ## Running arbitrary commands
 
-Run an ad-hoc command on the selected hosts:
+`dep run <command> [selector]` runs a one-off shell command on the selected hosts:
 
 ```
-dep run 'uptime -p'
+$ dep run 'uptime -p' all
+[prod01] up 3 weeks, 2 days, 4 hours
+[prod02] up 1 week, 6 days
 ```
+
+Useful flags:
+
+- `-o key=value` — override config (same as deploy commands).
+- `-t, --timeout=<sec>` — command timeout (default 300).
+- `-r, --raw` — print stdout only, no `[host]` prefix.
+
+## SSH into a host
+
+`dep ssh [host]` opens an interactive SSH session using Deployer's host config (alias, port, identity file,
+`remote_user`, etc.).
+
+```
+dep ssh                # asks which host
+dep ssh deployer.org   # connects directly
+```
+
+After connecting, the working directory is `{{deploy_path}}` (or `{{current_path}}` if it exists).
+
+## Inspect configuration
+
+`dep config [selector]` prints resolved config for the selected hosts. Default format is MAML:
+
+```
+dep config                  # asks which host
+dep config all              # every host
+dep config --format=json
+dep config --format=maml
+```
+
+Useful for debugging variable interpolation and seeing what callbacks resolve to.
+
+## Rolling back
+
+`dep rollback` re-points `current` at the most recent good release:
+
+```
+dep rollback
+```
+
+What it does:
+
+1. Reads `releases/` and picks the most recent release before `current` that is not marked `BAD_RELEASE`.
+2. Re-symlinks `current → releases/<candidate>`.
+3. Writes a `BAD_RELEASE` file (with timestamp and user) into the previously-current release so it is skipped on
+   future rollbacks.
+
+Override the target release with `-o rollback_candidate=<release_id>`.
 
 ## Tree command
 
