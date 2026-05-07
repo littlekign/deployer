@@ -308,9 +308,40 @@ function option(string $name, $shortcut = null, ?int $mode = null, string $descr
 /**
  * Change the current working directory.
  *
+ * Both `cd()` and the `cwd:` argument of `run()` change the working directory
+ * for executed commands. The difference: `cd()` changes it for the rest of the
+ * current task, while `cwd:` overrides it for a single `run()` call only.
+ *
  * ```php
- * cd('~/myapp');
- * run('ls'); // Will run `ls` in ~/myapp.
+ * set('deploy_path', '~/deployer.org');
+ *
+ * task('task1', function () {
+ *     cd('{{deploy_path}}');
+ *
+ *     run('pwd');
+ *     // output: /home/deployer/deployer.org
+ *
+ *     run('pwd', cwd: '/usr'); // Override working dir for this run only.
+ *     // output: /usr
+ *
+ *     run('pwd');
+ *     // output: /home/deployer/deployer.org
+ * });
+ * ```
+ *
+ * Note that `cd()` only changes the working directory within a single task.
+ * The next task starts fresh.
+ *
+ * ```php
+ * task('task2', function () {
+ *     run('pwd'); // cd from previous task is not used.
+ *     // output: /home/deployer
+ * });
+ *
+ * task('all', [
+ *    'task1',
+ *    'task2',
+ * ]);
  * ```
  */
 function cd(string $path): void
