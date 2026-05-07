@@ -143,18 +143,24 @@ task('info', function () {
 })->select('type=web|db,env=prod');
 ```
 
-## Labels in YAML
+## Labels in MAML
 
-YAML recipes support labels too:
+[MAML](maml.md) recipes support labels too:
 
-```yaml
-hosts:
-  web.example.com:
-    remote_user: deployer
-    env:
-      environment: production
-    labels:
-      env: prod
+```maml
+{
+  hosts: {
+    "web.example.com": {
+      remote_user: "deployer"
+      env: {
+        environment: "production"
+      }
+      labels: {
+        env: "prod"
+      }
+    }
+  }
+}
 ```
 
 Don't confuse `env` (a config key) with `labels.env` (a label). They are independent:

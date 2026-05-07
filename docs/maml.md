@@ -156,6 +156,40 @@ options are available (`remote_user`, `deploy_path`, `port`, `identity_file`,
 }
 ```
 
+### Labels
+
+Labels are key-value tags used by [selectors](selector.md). Define them as a nested object under `labels`:
+
+```maml
+{
+  hosts: {
+    "web.example.com": {
+      remote_user: "deployer"
+      labels: {
+        type: "web"
+        env: "prod"
+      }
+    }
+    "db.example.com": {
+      remote_user: "deployer"
+      labels: {
+        type: "db"
+        env: "prod"
+      }
+    }
+  }
+}
+```
+
+Run a task on every `prod` host:
+
+```bash
+$ dep deploy env=prod
+```
+
+`labels.<key>` and a top-level config key with the same name (e.g. `env`) are independent — the selector only
+looks at `labels`.
+
 ### Localhost
 
 Set `local: true` to register the entry as a localhost via `localhost()`:
