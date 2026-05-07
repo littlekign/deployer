@@ -1,40 +1,35 @@
 # CLI Usage
 
-We recommend adding the following alias to your .bashrc file:
+For project installs, alias `dep`:
 
 ```bash
 alias dep='vendor/bin/dep'
 ```
 
-It is also recommended to install the completion script for Deployer. Completion supports:
-
-- tasks,
-- options,
-- host names,
-- and configs.
-
-For example, on macOS run the following commands:
+Install shell completion for tasks, options, host names, and configs. On macOS:
 
 ```bash
 brew install bash-completion
 dep completion bash > /usr/local/etc/bash_completion.d/deployer
 ```
 
+See [installation](installation.md#autocomplete-support) for zsh and fish.
+
 ## Overriding configuration options
 
-For example, if your _deploy.php_ file contains this configuration:
+Use `-o` to override any config value at the command line. Given this in `deploy.php`:
 
 ```php
 set('ssh_multiplexing', false);
 ```
 
-And you want to enable [ssh multiplexing](https://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing) without modifying the recipe, you can pass the `-o` option to the `dep` command:
+Re-enable [ssh multiplexing](https://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing) for one run:
 
 ```
 dep deploy -o ssh_multiplexing=true
 ```
 
-To override multiple config options, you can pass multiple `-o` args:
+Pass `-o` multiple times to override more than one value:
 
 ```
 dep deploy -o ssh_multiplexing=true -o branch=master
@@ -42,7 +37,7 @@ dep deploy -o ssh_multiplexing=true -o branch=master
 
 ## Running arbitrary commands
 
-Run any command on one or more hosts:
+Run an ad-hoc command on the selected hosts:
 
 ```
 dep run 'uptime -p'
@@ -50,8 +45,7 @@ dep run 'uptime -p'
 
 ## Tree command
 
-Deployer supports [task grouping](tasks.md#task-grouping) and [before/after hooks](tasks.md#addbefore). 
-To visualize the task hierarchy, use the **dep tree** command.
+`dep tree <task>` visualizes [task grouping](tasks.md#task-grouping) and [before/after hooks](tasks.md#addbefore):
 
 ```
 $ dep tree deploy
@@ -81,8 +75,8 @@ The task-tree for deploy:
 
 ## Execution plan
 
-Before executing tasks, Deployer needs to flatten the task tree and decide in which order it will be executing tasks
-on which hosts. Use the `--plan` option to output a table with tasks/hosts:
+Deployer flattens the task tree and decides task order per host before running. `--plan` prints the table without
+executing anything:
 
 ```
 $ dep deploy --plan all
@@ -113,7 +107,7 @@ $ dep deploy --plan all
 └──────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┘
 ```
 
-The **deploy.php**:
+The `deploy.php` for the table above:
 
 ```php
 host('prod[01:04]');
@@ -122,17 +116,17 @@ task('deploy:symlink')->limit(1);
 
 ## The `runLocally` working dir
 
-By default, `runLocally()` commands are executed relative to the recipe file directory.
-This can be overridden globally by setting an environment variable:
+`runLocally()` runs relative to the recipe file's directory by default. Override globally with an environment
+variable:
 
 ```
-DEPLOYER_ROOT=. dep taskname`
+DEPLOYER_ROOT=. dep taskname
 ```
 
-Alternatively, the root directory can be overridden per command via the cwd configuration.
+Or per call via the `cwd:` argument:
 
 ```php
-runLocally('ls', ['cwd' => '/root/directory']);
+runLocally('ls', cwd: '/root/directory');
 ```
 
 ## Play blackjack

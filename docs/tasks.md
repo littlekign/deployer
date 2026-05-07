@@ -1,16 +1,15 @@
 # Tasks
 
-Define a task by using the [task](api.md#task) function. Also, you can give a description
-for a task with the [desc](api.md#desc) function called before _task_:
+Use [task()](api.md#task) to define a task. Add a description with [desc()](api.md#desc) before the task:
 
 ```php
 desc('My task');
 task('my_task', function () {
-    ....
+    // ...
 });
 ```
 
-To get the task or override task config, call the _task_ function without the second argument:
+Pass only the name to fetch an existing task and chain config on it:
 
 ```php
 task('my_task')->disable();
@@ -18,9 +17,11 @@ task('my_task')->disable();
 
 ## Task config
 
+These methods are chained off `task('name')` to configure behavior.
+
 ### desc()
 
-Sets task's description.
+Set the task's description (shown by `dep list`).
 
 ```php
 task('deploy', function () {
@@ -28,7 +29,7 @@ task('deploy', function () {
 })->desc('Task description');
 ```
 
-Same as using [desc()](api.md#desc) function helper:
+Equivalent to the [desc()](api.md#desc) helper:
 
 ```php
 desc('Task description');
@@ -39,15 +40,12 @@ task('deploy', function () {
 
 ### once()
 
-Sets the task to run only on one of the selected hosts.
+Run the task on a single host instead of all selected hosts.
 
 ### oncePerNode()
 
-Sets the task to run only on **one node** of the selected hosts.
-
-The node is identified by its [hostname](hosts.md#hostname). For instance,
-multiple hosts might deploy to a single physical machine (with a unique hostname).
-
+Run the task once per **node**, where a node is identified by [hostname](hosts.md#hostname). Useful when several
+host aliases point at the same physical machine.
 
 ```php
 host('foo')->setHostname('example.com');
@@ -55,52 +53,50 @@ host('bar')->setHostname('example.com');
 host('pro')->setHostname('another.com');
 
 task('apt:update', function () {
-    // This task will be executed twice, only on "foo" and "pro" hosts.
+    // Runs twice: once for foo/bar (same hostname), once for pro.
     run('apt-get update');
 })->oncePerNode();
 ```
 
 ### hidden()
 
-Hides the task from CLI usage page.
+Hide the task from `dep list`.
 
 ### addBefore()
 
-Adds a before hook to the task.
+Attach a before-hook. Same as [before()](api.md#before) but chained off the task.
 
 ### addAfter()
 
-Adds an after hook to the task.
+Attach an after-hook. Same as [after()](api.md#after) but chained off the task.
 
 ### limit()
 
-Limits the number of hosts the task will be executed on in parallel.
-
-Default is unlimited (runs the task on all hosts in parallel).
+Cap the number of hosts the task runs on concurrently. Defaults to unlimited.
 
 ### select()
 
-Sets the task's host selector.
+Restrict the task to hosts matching a [selector](selector.md). Replaces any previous selector on the task.
 
 ### addSelector()
 
-Adds the task's selector.
+Add another selector clause (OR). The task runs on hosts that match `select()` or any added selector.
 
 ### verbose()
 
-Makes the task always verbose, as if the `-v` option is persistently enabled.
+Always run the task as if `-v` were passed.
 
 ### disable()
 
-Disables the task. the task will not be executed.
+Disable the task. Disabled tasks do not run, even when invoked.
 
 ### enable()
 
-Enables the task.
+Re-enable a task that was disabled.
 
 ## Task grouping
 
-You can combine tasks in groups:
+Pass an array of task names to define a group task that runs them in order:
 
 ```php
 task('deploy', [
@@ -108,13 +104,13 @@ task('deploy', [
     'deploy:update_code',
     'deploy:vendors',
     'deploy:symlink',
-    'cleanup'
+    'cleanup',
 ]);
 ```
 
 ## Task hooks
 
-You can define tasks to be run before or after specific tasks.
+Run a task before or after another:
 
 ```php
 task('deploy:done', function () {
@@ -124,10 +120,10 @@ task('deploy:done', function () {
 after('deploy', 'deploy:done');
 ```
 
-After the `deploy` task executed, `deploy:done` will be triggered.
+`deploy:done` runs after `deploy` finishes.
 
 :::note
-You can see which hooks are enabled via the **dep tree** command.
+Inspect attached hooks with:
 
 ```
 dep tree deploy

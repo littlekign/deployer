@@ -1,14 +1,9 @@
 # Selector
 
-Deployer uses the selector to choose hosts. Each host can have a set of labels.
-Labels are key-value pairs.
+A **selector** picks hosts to run a task on. Each host carries key-value **labels** (e.g. `stage: production`,
+`role: web`); selectors match on those labels.
 
-For example, `stage: production` or `role: web`.
-
-You can use labels to select hosts. For example, `dep deploy stage=production`
-will deploy to all hosts with `stage: production` label.
-
-Let's define two labels, **type** and **env**, to our hosts:
+Define labels on hosts:
 
 ```php
 host('web.example.com')
@@ -23,9 +18,10 @@ host('db.example.com')
         'env' => 'prod',
     ]);
 ```
-or use `->addLabels()` method to add labels to the existing host.
 
-Now let's define a task to check labels:
+Use `->addLabels()` to extend labels on an existing host.
+
+Define a task that prints the labels:
 
 ```php
 task('info', function () {
@@ -33,7 +29,7 @@ task('info', function () {
 });
 ```
 
-Now we can run this task with a selector:
+Run it with a selector:
 
 ```bash
 $ dep info env=prod
@@ -42,21 +38,19 @@ task info
 [db.example.com] type:db env:prod
 ```
 
-As you can see, Deployer will run this task on all hosts with the `env: prod` label.
-And if we define only the `type` label, Deployer will run this task on the specified host.
+Both hosts match `env=prod`. Restrict further:
 
 ```bash
-dep info type=web
+$ dep info type=web
 task info
 [web.example.com] type:web env:prod
 ```
 
 ## Selector syntax
 
-Selector syntax consists of a list of conditions, separated by `,` or `&`. There comma means **OR**
-and `&` means **AND**.
+A selector is a list of conditions joined by `,` (OR) or `&` (AND).
 
-For example, `type=web,env=prod` is a selector of: `type=web` **OR** `env=prod`.
+**OR**: `type=web,env=prod` matches `type=web` *or* `env=prod`:
 
 ```bash
 $ dep info 'type=web,env=prod'
@@ -65,10 +59,7 @@ task info
 [db.example.com] type:db env:prod
 ```
 
-As you can see, both hosts are selected (as both of them have the `env: prod` label).
-
-We can use `&` to define **AND**. For example, `type=web & env=prod` is a selector
-for hosts with `type: web` **AND** `env: prod` labels.
+**AND**: `type=web & env=prod` matches both:
 
 ```bash
 $ dep info 'type=web & env=prod'
@@ -76,8 +67,7 @@ task info
 [web.example.com] type:web env:prod
 ```
 
-We can use `|` to define **OR** in a subquery. For example, `type=web|db & env=prod` is a selector
-for hosts with (`type: web` **OR** `type: db`) **AND** `env: prod` labels.
+**OR within a value**: `type=web|db & env=prod` matches `(type=web OR type=db) AND env=prod`:
 
 ```bash
 $ dep info 'type=web|db & env=prod'
@@ -86,8 +76,7 @@ task info
 [db.example.com] type:db env:prod
 ```
 
-We can also use `!=` to negate a label. For example, `type!=web` is a selector for
-all hosts which do not have a `type: web` label.
+**Negation**: `type!=web` excludes hosts labeled `type=web`:
 
 ```bash
 $ dep info 'type!=web'
@@ -96,21 +85,18 @@ task info
 ```
 
 :::note
-Deployer CLI can take a few selectors as arguments. For example,
-`dep info type=web env=prod` is the same as `dep info 'type=web,env=prod'`.
+Multiple selector arguments are equivalent to a comma-joined list:
+`dep info type=web env=prod` ≡ `dep info 'type=web,env=prod'`.
 
-You can install bash autocompletion for Deployer CLI, which will help you to
-write selectors. See [installation](installation.md) for more.
+Bash autocompletion helps with selectors — see [installation](installation.md).
 :::
 
-Deployer also has a few special selectors:
+### Special selectors
 
-- `all` - select all hosts
-- `alias=...` - select host by alias
+- `all` — every host.
+- `alias=...` — match by host alias.
 
-If a selector does not contain an `=` sign, Deployer will assume that it is an alias.
-
-For example `dep info web.example.com` is the same as `dep info alias=web.example.com`.
+A token without `=` is treated as an alias, so `dep info web.example.com` ≡ `dep info alias=web.example.com`:
 
 ```bash
 $ dep info web.example.com
@@ -120,13 +106,13 @@ task info
 
 ```bash
 $ dep info 'web.example.com' 'db.example.com'
-$ # Same as: 
+$ # Same as:
 $ dep info 'alias=web.example.com,alias=db.example.com'
-````
+```
 
-## Using the select() function
+## Using selectors from PHP
 
-You can use the [select()](api.md#select) function to select hosts by selector in your PHP code.
+[select()](api.md#select) returns matching hosts:
 
 ```php
 task('info', function () {
@@ -137,7 +123,7 @@ task('info', function () {
 });
 ```
 
-Or you can use the [on()](api.md#on) function to run a task on selected hosts.
+[on()](api.md#on) runs a callback on each matched host:
 
 ```php
 task('info', function () {
@@ -149,7 +135,7 @@ task('info', function () {
 
 ## Task selectors
 
-To restrict a task to run only on selected hosts, you can use the [select()](tasks.md#select) method.
+Restrict a task to a fixed selector with [select()](tasks.md#select):
 
 ```php
 task('info', function () {
@@ -159,7 +145,7 @@ task('info', function () {
 
 ## Labels in YAML
 
-You can also define labels in a YAML recipe. For example:
+YAML recipes support labels too:
 
 ```yaml
 hosts:
@@ -171,16 +157,13 @@ hosts:
       env: prod
 ```
 
-But make sure to distinguish between the `env` and `labels.env` keys.
-`env` is a configuration key, and `labels.env` is a label.
+Don't confuse `env` (a config key) with `labels.env` (a label). They are independent:
 
 ```php
 task('info', function () {
     writeln('env:' . get('env')['environment'] . ' labels.env:' . get('labels')['env']);
 });
 ```
-
-Will print:
 
 ```bash
 $ dep info env=prod

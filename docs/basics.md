@@ -1,14 +1,9 @@
 # Basics
 
-Deployer operates around two main concepts: [**hosts**](hosts.md) and [**tasks**](tasks.md). These are defined within a
-**recipe**, which is simply a file containing **hosts** and **tasks** definitions.
+Deployer is built around two concepts: [**hosts**](hosts.md) and [**tasks**](tasks.md). A **recipe** is a file
+that defines both.
 
-The Deployer CLI requires two arguments:
-
-1. A **task** to execute.
-2. A **selector** to determine the hosts the task will run on.
-
-Here's an example:
+The CLI takes two arguments — a task and a [selector](selector.md):
 
 ```sh
 $ dep deploy deployer.org
@@ -16,17 +11,14 @@ $ dep deploy deployer.org
        task    selector
 ```
 
-Deployer uses the [selector](selector.md) to choose which hosts to execute the task on. After selecting hosts, it
-prepares the environment (details later) and runs the task.
-
 ### Host Selection
 
-- If no selector is specified, Deployer prompts you to choose a host.
-- If your recipe has only one host, it is automatically selected.
-- To run a task on all hosts, use the `all` selector.
+- No selector — Deployer asks you to pick a host.
+- One host in the recipe — selected automatically.
+- `all` — every host.
 
-By default, the `dep` CLI looks for a `deploy.php` or `deploy.yaml` file in the current directory. Alternatively, you
-can specify a recipe file explicitly using the `-f` or `--file` option:
+By default, `dep` loads `deploy.php` or `deploy.maml` from the current directory. Pass `-f` / `--file` to point it
+elsewhere:
 
 ```sh
 $ dep --file=deploy.php deploy deployer.org
@@ -36,7 +28,7 @@ $ dep --file=deploy.php deploy deployer.org
 
 ## Writing Your First Recipe
 
-Here's an example of a simple recipe:
+A minimal recipe:
 
 ```php
 namespace Deployer;
@@ -48,7 +40,7 @@ task('my_task', function () {
 });
 ```
 
-To execute this task on `deployer.org`:
+Run it:
 
 ```sh
 $ dep my_task
@@ -57,8 +49,7 @@ task my_task
 
 ### Increasing Verbosity
 
-By default, Deployer only shows task names. To see detailed output (e.g., the result of the `whoami` command), use the
-`-v` option:
+`dep` only shows task names by default. Use `-v` to see commands and their output:
 
 ```sh
 $ dep my_task -v
@@ -71,17 +62,17 @@ task my_task
 
 ## Working with Multiple Hosts
 
-You can define multiple hosts in your recipe:
+Define more than one host:
 
 ```php
 host('deployer.org');
 host('medv.io');
 ```
 
-Deployer connects to hosts using the same `~/.ssh/config` file as the `ssh` command. Alternatively, you can
-specify [connection options](hosts.md) directly in the recipe.
+Deployer reads `~/.ssh/config` like the `ssh` command. You can also set [connection options](hosts.md) in the
+recipe.
 
-Run a task on both hosts:
+Run a task on every host:
 
 ```sh
 $ dep my_task -v all
@@ -94,8 +85,8 @@ task my_task
 
 ### Controlling Parallelism
 
-By default, tasks run in parallel on all selected hosts, which may mix the output. To limit execution to one host at a
-time:
+Tasks run in parallel on all selected hosts by default, which can interleave output. Use `--limit 1` to run one
+host at a time:
 
 ```sh
 $ dep my_task -v all --limit 1
@@ -106,20 +97,20 @@ task my_task
 [medv.io] deployer
 ```
 
-You can also specify a [limit level](tasks.md#limit) for individual tasks to control parallelism.
+Per-task limits are also available — see [limit](tasks.md#limit).
 
 ---
 
 ## Configuring Hosts
 
-Each host can have a set of key-value configuration options. Here's an example:
+Each host carries key-value config:
 
 ```php
 host('deployer.org')->set('my_config', 'foo');
 host('medv.io')->set('my_config', 'bar');
 ```
 
-Access these options in a task using the [currentHost](api.md#currenthost) function:
+Read it inside a task with [currentHost](api.md#currenthost):
 
 ```php
 task('my_task', function () {
@@ -128,7 +119,7 @@ task('my_task', function () {
 });
 ```
 
-Or more concisely with the [get](api.md#get) function:
+Or shorter, with [get](api.md#get):
 
 ```php
 task('my_task', function () {
@@ -137,7 +128,7 @@ task('my_task', function () {
 });
 ```
 
-Or using brackets syntax `{{` and `}}`:
+Or inline with `{{...}}`:
 
 ```php
 task('my_task', function () {
@@ -145,7 +136,7 @@ task('my_task', function () {
 });
 ```
 
-To output literal `{{` without replacement, escape with a backslash `\{{`:
+Escape with a backslash to emit a literal `{{`:
 
 ```php
 run('echo \{{not_replaced}}'); // outputs: {{not_replaced}}
@@ -155,7 +146,7 @@ run('echo \{{not_replaced}}'); // outputs: {{not_replaced}}
 
 ## Global Configurations
 
-Host configurations inherit global options. Here's how to set a global configuration:
+Hosts inherit global config:
 
 ```php
 set('my_config', 'global');
@@ -164,9 +155,7 @@ host('deployer.org');
 host('medv.io');
 ```
 
-Both hosts will inherit `my_config` with the value `global`. You can override these values for individual hosts as
-needed.
-
+Both hosts now see `my_config = "global"`. Hosts can override:
 
 ```php
 set('my_config', 'global');
@@ -179,8 +168,7 @@ host('medv.io')->set('my_config', 'bar');
 
 ## Dynamic Configurations
 
-You can define dynamic configuration values using callbacks. These are evaluated the first time they are accessed, and
-the result is stored for subsequent use:
+A callback value is evaluated on first access and cached:
 
 ```php
 set('whoami', function () {
@@ -203,7 +191,7 @@ task my_task
 
 ---
 
-Dynamic configurations are cached after the first use:
+The cache is per-host: the callback runs once per host and the result sticks for the rest of the task tree.
 
 ```php
 set('current_date', function () {
@@ -216,8 +204,6 @@ task('my_task', function () {
     writeln('What time is it? {{current_date}}');
 });
 ```
-
-Running this task:
 
 ```sh
 $ dep my_task deployer.org -v
@@ -233,7 +219,7 @@ task my_task
 
 ## Overriding Configurations via CLI
 
-You can override configuration values using the `-o` option:
+Override any config value with `-o`:
 
 ```sh
 $ dep my_task deployer.org -v -o current_date="I don't know"
@@ -243,19 +229,19 @@ task my_task
 [deployer.org] What time is it? I don't know
 ```
 
-Since `current_date` is overridden, the callback is never executed.
+The callback never runs because `current_date` is already set.
 
 :::note
-If you need to create a new configuration option based on the overridden one, use dynamic configuration syntax:
+To derive a value from a CLI-overridable config, use a callback. Plain `get()` at recipe load time captures the
+default and cannot see `-o` overrides.
 
 ```php
-
 set('dir_name', 'test');
 
-// calling get during recipe initialization will give you the original value defined above
+// Evaluated at recipe load — captures the default, ignores -o overrides.
 set('uses_original_dir_name', '/path/to/' . get('dir_name'));
 
-// use dynamic configuration syntax if you need to get a value passed via -o option
+// Evaluated lazily — sees the overridden value.
 set('uses_overridden_dir_name', function () {
     return '/path/to/' . get('dir_name');
 });
@@ -273,8 +259,3 @@ task my_task
 [deployer.org] Path: /path/to/prod
 ```
 :::
-
----
-
-By now, you should have a solid understanding of Deployer’s basics, from defining tasks and hosts to working with
-configurations and dynamic values. Happy deploying!

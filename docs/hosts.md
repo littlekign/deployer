@@ -1,6 +1,6 @@
 # Hosts
 
-In Deployer, you define hosts using the [host()](api.md#host) function.
+Define hosts with [host()](api.md#host).
 
 ### Defining a Host
 
@@ -8,14 +8,14 @@ In Deployer, you define hosts using the [host()](api.md#host) function.
 host('example.org');
 ```
 
-Each host is associated with configuration key-value pairs. When you define a host, two key configurations are set:
+Hosts hold key-value config. Each host gets two keys for free:
 
-- **`hostname`**: Used for connecting to the remote host.
-- **`alias`**: A unique identifier for the host in recipe.
+- **`hostname`** — used for the SSH connection.
+- **`alias`** — unique identifier in the recipe.
 
-### Example: Using Host Configurations
+### Reading Host Configurations
 
-You can access host configurations within tasks with the [currentHost()](api.md#currenthost) function:
+Read host config inside a task with [currentHost()](api.md#currenthost):
 
 ```php
 task('test', function () {
@@ -25,15 +25,13 @@ task('test', function () {
 });
 ```
 
-Or using brackets syntax:
+Or with `{{...}}` interpolation:
 
 ```php
 task('test', function () {
     writeln('The {{alias}} is {{hostname}}');
 });
 ```
-
-Running the task:
 
 ```sh
 $ dep test
@@ -42,14 +40,14 @@ $ dep test
 
 ### Overriding Hostname
 
-You can override the default hostname with the `set()` method:
+Override `hostname` to connect to a different address than the alias suggests:
 
 ```php
 host('example.org')
     ->set('hostname', 'example.cloud.google.com');
 ```
 
-Now the `hostname` is used for SSH connections, but the `alias` remains unchanged:
+The alias stays `example.org`; SSH connects to `example.cloud.google.com`.
 
 ```sh
 $ dep test
@@ -58,7 +56,7 @@ $ dep test
 
 ### Configuring Remote User
 
-Specify the `remote_user` to define which user to connect as:
+Set `remote_user` to choose the SSH user:
 
 ```php
 host('example.org')
@@ -66,9 +64,9 @@ host('example.org')
     ->set('remote_user', 'deployer');
 ```
 
-Deployer will now connect using `ssh deployer@example.cloud.google.com`.
+Connection becomes `ssh deployer@example.cloud.google.com`.
 
-Alternatively, you can use special setter methods for better IDE autocompletion:
+The typed setter methods give better IDE autocompletion:
 
 ```php
 host('example.org')
@@ -80,14 +78,14 @@ host('example.org')
 
 ## Host Labels
 
-Labels allow you to group and identify hosts for specific deployments. Labels are defined as key-value pairs:
+Labels are key-value tags used to group hosts:
 
 ```php
 host('example.org')->setLabels(['stage' => 'prod']);
 host('staging.example.org')->setLabels(['stage' => 'staging']);
 ```
 
-Labels become powerful in multi-server setups:
+They scale to multi-server fleets:
 
 ```php
 host('admin.example.org')->setLabels(['stage' => 'prod', 'role' => 'web']);
@@ -99,16 +97,16 @@ host('special.example.org')->setLabels(['role' => 'special']);
 
 ### Filtering Hosts by Labels
 
-When deploying, you can filter hosts using label selectors:
+Filter at deploy time with a [selector](selector.md):
 
 ```sh
 $ dep deploy stage=prod&role=web,role=special
 ```
 
-- Use `&` to specify multiple labels that must match on the same host.
-- Use `,` to separate multiple selections.
+- `&` — all conditions must match the same host (AND).
+- `,` — match either group (OR).
 
-Set a default selection string for convenience:
+Set a default selector:
 
 ```php
 set('default_selector', "stage=prod&role=web,role=special");
@@ -138,7 +136,7 @@ set('default_selector', "stage=prod&role=web,role=special");
 
 ### Best Practices
 
-Avoid storing sensitive SSH connection parameters in `deploy.php`. Instead, configure them in `~/.ssh/config`:
+Keep sensitive SSH parameters out of `deploy.php`. Put them in `~/.ssh/config` instead:
 
 ```
 Host *
@@ -151,7 +149,7 @@ Host *
 
 ### Multiple Hosts
 
-Define multiple hosts in one call:
+Define several hosts with shared config in one call:
 
 ```php
 host('example.org', 'deployer.org', 'another.org')->setRemoteUser('anton');
@@ -159,31 +157,30 @@ host('example.org', 'deployer.org', 'another.org')->setRemoteUser('anton');
 
 ### Host Ranges
 
-For patterns with many hosts, use ranges:
+Expand a range into many hosts:
 
 ```php
-host('www[01:50].example.org'); // Will define hosts "www01.example.org", "www02.example.org", etc.
-host('db[a:f].example.org'); // Will define hosts "dba.example.org", "dbb.example.org", etc.
+host('www[01:50].example.org'); // www01.example.org … www50.example.org
+host('db[a:f].example.org');    // dba.example.org … dbf.example.org
 ```
 
-- Numeric ranges can include leading zeros.
-- Alphabetic ranges are also supported.
+Numeric ranges keep leading zeros; alphabetic ranges work too.
 
 ### Localhost
 
-Use the [localhost()](api.md#localhost) function for local execution:
+Run commands on the local machine with [localhost()](api.md#localhost):
 
 ```php
-localhost(); // Alias and hostname are "localhost".
-localhost('ci'); // Alias is "ci", hostname is "localhost".
+localhost();      // alias and hostname are "localhost"
+localhost('ci');  // alias is "ci", hostname is "localhost"
 ```
 
-Now [run()](api.md#run) will execute on command locally. Alternatively, you can use [runLocally()](api.md#runlocally)
-function.
+[run()](api.md#run) then executes locally. [runLocally()](api.md#runlocally) does the same without needing a
+localhost host.
 
 ### YAML Inventory
 
-Separate host definitions into an external file using the [import()](api.md#import) function:
+Move host definitions to a separate file and pull them in with [import()](api.md#import):
 
 ```php title="deploy.php"
 import('inventory.yaml');
@@ -196,8 +193,3 @@ hosts:
   deployer.org:
     remote_user: deployer
 ```
-
----
-
-With these tools and configurations, you can manage and deploy to hosts effectively, whether it's a single server or a
-complex multi-host setup. Happy deploying!

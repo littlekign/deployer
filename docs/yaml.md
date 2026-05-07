@@ -1,9 +1,9 @@
 # YAML
 
-Deployer supports recipes written in YAML. For validating the structure, Deployer uses
-the JSON Schema declared in [schema.json](https://github.com/deployphp/deployer/blob/master/src/schema.json).
+YAML recipes are validated against
+[schema.json](https://github.com/deployphp/deployer/blob/master/src/schema.json).
 
-Here is an example of a YAML recipe:
+Example recipe:
 
 ```yaml
 import:
@@ -26,6 +26,7 @@ after:
   deploy:failed: deploy:unlock
 ```
 
-YAML recipes can include recipes written in PHP. For example, some tasks maybe written in PHP and imported into YAML.
+YAML and PHP recipes can import each other — write tasks needing closures in PHP and import them from YAML, or
+the other way around with [import()](api.md#import).
 
-Conversely, it's also possible to import a YAML recipe from PHP using the [import()](api.md#import) function.
+For a richer alternative with comments, multiline strings, and trailing commas, see [MAML](maml.md).
