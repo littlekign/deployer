@@ -8,6 +8,7 @@ require_once __DIR__ . '/../contrib/cachetool.php';
 use Deployer\Exception\ConfigurationException;
 use Deployer\Exception\GracefulShutdownException;
 use Deployer\Exception\RunException;
+use Deployer\Exception\TimeoutException;
 use Deployer\Host\Host;
 
 const CONFIG_IMPORT_NEEDED_EXIT_CODE = 2;
@@ -106,6 +107,9 @@ set('clear_paths', [
     '{{magento_dir}}/var/view_preprocessed/*',
 ]);
 
+// WARNING: Do not use {{bin/magento}} in deploy:failed handlers - release_or_current_path points to the failed
+// release during failure, not the live one. Use {{current_path}} explicitly instead.
+// See: config_import_needed_on_current, magento:config:import:on-current, magento:maintenance:enable/disable.
 set('bin/magento', '{{release_or_current_path}}/{{magento_dir}}/bin/magento');
 
 set('magento_version', function () {
@@ -125,6 +129,28 @@ set('config_import_needed', function () {
         }
 
         throw $e;
+    }
+    return false;
+});
+
+set('config_import_needed_on_current', function () {
+    if (!test('[ -d {{current_path}}/{{magento_dir}} ] && [ -f {{current_path}}/{{magento_dir}}/bin/magento ]')) {
+        writeln('Current Magento installation is unavailable => import skipped');
+        return false;
+    }
+
+    try {
+        // detect if app:config:import is needed on the current (live) release
+        // do not use {{bin/magento}} as it resolves via release_or_current_path which is unreliable in failure scenarios
+        run('{{bin/php}} {{current_path}}/{{magento_dir}}/bin/magento app:config:status');
+    } catch (RunException|TimeoutException $e) {
+        if ($e instanceof RunException && $e->getExitCode() == CONFIG_IMPORT_NEEDED_EXIT_CODE) {
+            return true;
+        }
+
+        // In failure scenarios, non-status errors should not break deploy:failed handlers.
+        writeln('Unable to determine app config status on current release => import skipped');
+        return false;
     }
     return false;
 });
@@ -318,6 +344,20 @@ task('magento:config:import', function () {
     }
 });
 
+desc('Config Import on current release');
+task('magento:config:import:on-current', function () {
+    try {
+        if (get('config_import_needed_on_current')) {
+            // do not use {{bin/magento}} as it must run on the current (last successful) release in failure scenarios
+            run('{{bin/php}} {{current_path}}/{{magento_dir}}/bin/magento app:config:import --no-interaction');
+        } else {
+            writeln('App config import skipped');
+        }
+    } catch (RunException|TimeoutException $e) {
+        writeln('Unable to import app config on current release => import skipped');
+    }
+});
+
 desc('Upgrades magento database');
 task('magento:upgrade:db', function () {
     if (get('database_upgrade_needed')) {
@@ -370,7 +410,13 @@ task('deploy', [
 
 after('deploy:symlink', 'magento:cache:flush');
 
-after('deploy:failed', 'magento:maintenance:disable');
+after('deploy:failed', 'deploy:magento:failed');
+
+desc('Run Magento post-deployment failure tasks');
+task('deploy:magento:failed', [
+    'magento:config:import:on-current',
+    'magento:maintenance:disable',
+]);
 
 // Artifact deployment section
 
