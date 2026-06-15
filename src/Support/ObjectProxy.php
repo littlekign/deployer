@@ -10,13 +10,21 @@ declare(strict_types=1);
 
 namespace Deployer\Support;
 
+use Deployer\Host\Host;
+
+/**
+ * @mixin Host
+ */
 class ObjectProxy
 {
     /**
-     * @var array
+     * @var array<Host>
      */
     private $objects;
 
+    /**
+     * @param array<Host> $objects
+     */
     public function __construct(array $objects)
     {
         $this->objects = $objects;
